@@ -3,3 +3,4 @@ node_modules/
 files-list.sh
 fs-app-ecomm.backend.sublime-project
 fs-app-ecomm.fontes.txt
+.env
