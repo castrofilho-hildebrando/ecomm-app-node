@@ -26,27 +26,28 @@ describe("Auth Routes", () => {
         });
 
         it("não deve registrar usuário com email duplicado", async () => {
-            await createTestUser();
+            const { user } = await createTestUser();
 
             const response = await request(app)
                 .post("/api/auth/register")
                 .send({
                     name: "Hildebrando",
-                    email: "hildebrando@example.com",
+                    email: user.email,
                     password: "123456",
                 });
 
             expect(response.status).toBe(409);
         });
-    });
 
-    describe("POST /api/auth/login", () => {
+
         it("deve fazer login com credenciais válidas", async () => {
-            await createTestUser();
+            const { user } = await createTestUser();
 
-            const response = await request(app).post("/api/auth/login").send({
-                email: "hildebrando@example.com",
-                password: "123456",
+            const response = await request(app)
+                .post("/api/auth/login")
+                .send({
+                    email: user.email,
+                    password: "123456",
             });
 
             expect(response.status).toBe(200);

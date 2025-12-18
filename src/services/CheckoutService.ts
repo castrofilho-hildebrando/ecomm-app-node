@@ -16,7 +16,6 @@ export class CheckoutService {
     private readonly orderDomainService = new OrderDomainService();
 
     constructor(
-
         private readonly eventBus: EventBus
     ) {}
 

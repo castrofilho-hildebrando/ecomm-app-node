@@ -9,7 +9,12 @@ export const createTestUser = async (role: 'user' | 'admin' = 'user', suffix: st
 
     const passwordHash = await bcrypt.hash('123456', 10);
     const baseEmail = role === 'admin' ? 'hildebrando@admin.com' : 'hildebrando@example.com';
-    const email = role === 'user' ? `${baseEmail.replace('@', `-${suffix}@`)}` : baseEmail;
+    let email: string;
+    if (role === "admin") {
+        email = `admin-${suffix}@example.com`;
+    } else {
+        email = `user-${suffix}@example.com`;
+    }
 
     const user = await User.create({
         name: 'Hildebrando',

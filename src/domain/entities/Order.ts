@@ -1,15 +1,15 @@
 import { DomainError } from "../errors/DomainError";
 
 export type OrderStatus =
-    | "pending"
-    | "paid"
-    | "shipped"
-    | "cancelled";
+  | "pending"
+  | "paid"
+  | "shipped"
+  | "completed"
+  | "cancelled";
 
 export interface OrderItem {
     productId: string;
     quantity: number;
-    price: number;
 }
 
 export class Order {
@@ -19,6 +19,7 @@ export class Order {
     private readonly _total: number;
 
     constructor(
+
         status: OrderStatus,
         items: OrderItem[],
         total: number
@@ -38,6 +39,10 @@ export class Order {
         this._items = items;
         this._total = total;
     }
+
+    // =====================
+    // Getters
+    // =====================
 
     get status() {
 
@@ -63,6 +68,7 @@ export class Order {
         if (this._status !== "pending") {
 
             throw new DomainError(
+
                 "INVALID_STATUS_TRANSITION",
                 `Cannot pay order in status ${this._status}`
             );
@@ -84,6 +90,21 @@ export class Order {
 
         this._status = "shipped";
     }
+
+    complete() {
+
+        if (this._status !== "shipped") {
+
+            throw new DomainError(
+
+                "INVALID_STATUS_TRANSITION",
+                `Cannot complete order in status ${this._status}`
+            );
+        }
+
+        this._status = "completed";
+    }
+
 
     cancel() {
 

@@ -8,6 +8,7 @@ import { Order } from "../models/Order";
 import { OrderDomainService } from "../domain/services/OrderDomainService";
 import { CheckoutService } from "../services/CheckoutService";
 import { DomainError } from "../domain/errors/DomainError";
+import { Order as DomainOrder } from "../domain/entities/Order";
 
 import { eventBus } from "../infra/eventBus";
 
@@ -90,23 +91,60 @@ export const getAllOrders = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
+
     try {
+
         const { id } = req.params;
         const { status } = req.body;
-        const updatedOrder = await Order.findByIdAndUpdate(
-            id,
-            { status },
-            { new: true },
+
+        const order = await Order.findById(id);
+
+        if (!order) {
+
+            return res.status(404).json({ error: "Pedido não encontrado" });
+        }
+
+        // Adaptar Mongoose → Domínio
+        const domainOrder = new DomainOrder(
+
+            order.status,
+            order.items.map(item => ({
+                productId: item.productId.toString(),
+                quantity: item.quantity
+            })),
+            order.total
         );
 
-        if (!updatedOrder)
-            return res.status(404).json({ error: "Pedido não encontrado" });
+        // Delegar decisão ao domínio
+        switch (status) {
 
-        res.json({
-            message: "Status atualizado com sucesso!",
-            order: updatedOrder,
-        });
+            case "paid":
+                domainOrder.markAsPaid();
+                break;
+            case "shipped":
+                domainOrder.ship();
+                break;
+            case "cancelled":
+                domainOrder.cancel();
+                break;
+            default:
+                return res.status(400).json({ error: "Status inválido" });
+        }
+
+        // Persistir estado decidido pelo domínio
+        order.status = domainOrder.status;
+        await order.save();
+
+        return res.json(order);
+
     } catch (error) {
-        res.status(500).json({ error: "Erro ao atualizar pedido" });
+
+        if (error instanceof DomainError) {
+
+            return res.status(400).json({ error: error.message });
+        }
+
+        console.error(error);
+        return res.status(500).json({ error: "Erro ao atualizar pedido" });
     }
 };

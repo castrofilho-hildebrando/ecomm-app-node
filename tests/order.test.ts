@@ -40,76 +40,118 @@ describe("Order Routes", () => {
 
     // --- POST /api/orders/checkout ---
     describe("POST /api/orders/checkout", () => {
-        it("deve criar um pedido e reduzir o estoque dos produtos", async () => {
-            // Setup: Criar um carrinho com 3 unidades (reutiliza o produto do beforeEach)
-            const quantity = 3;
-            const initialProduct = await Product.findById(productId);
-            const initialStock = initialProduct?.stock || 0; 
 
-            const cart = new Cart({
-                userId,
-                items: [{ productId, quantity }],
+        it("deve criar um pedido com sucesso quando o estoque for suficiente", async () => {
+            const { user, token } = await createTestUser();
+
+            const product = await Product.create({
+                name: "Produto Teste",
+                price: 100,
+                stock: 10,
             });
-            await cart.save();
+
+            await Cart.create({
+                userId: user._id,
+                items: [
+                    {
+                        productId: product._id,
+                        quantity: 2,
+                    },
+                ],
+            });
 
             const response = await request(app)
                 .post("/api/orders/checkout")
-                .set("Authorization", `Bearer ${userToken}`)
-                .send({}); 
+                .set("Authorization", `Bearer ${token}`);
 
             expect(response.status).toBe(201);
-            // Verifica o total usando o preço do beforeEach (10) * quantidade (3)
-            expect(response.body.order.total).toBe(PRODUCT_PRICE * quantity);
+            expect(response.body).toHaveProperty("order");
+            expect(response.body.order.total).toBe(200);
 
-            // Verificação da Redução de Estoque
-            const updatedProduct = await Product.findById(productId);
-            expect(updatedProduct?.stock).toBe(initialStock - quantity); 
+            const productAfter = await Product.findById(product._id);
+            expect(productAfter!.stock).toBe(8);
 
-            // Verifica se o carrinho foi limpo
-            const updatedCart = await Cart.findOne({ userId });
-            expect(updatedCart?.items).toHaveLength(0);
+            const cartAfter = await Cart.findOne({ userId: user._id });
+            expect(cartAfter!.items.length).toBe(0);
         });
 
-        it("deve falhar se o carrinho estiver vazio", async () => {
-             // Garante que o carrinho está vazio (ou cria um vazio se não existir)
-            const cart = new Cart({ userId, items: [] });
-            await cart.save();
+        it("não deve criar pedido se o carrinho estiver vazio", async () => {
+            const { user, token } = await createTestUser();
+
+            await Cart.create({
+                userId: user._id,
+                items: [],
+            });
 
             const response = await request(app)
                 .post("/api/orders/checkout")
-                .set("Authorization", `Bearer ${userToken}`);
+                .set("Authorization", `Bearer ${token}`);
 
             expect(response.status).toBe(400);
-            expect(response.body.error).toBe("Carrinho vazio");
+            expect(response.body.error).toContain("Carrinho vazio");
         });
-        
-        it("não deve criar pedido se o estoque for insuficiente", async () => {
-            // Setup: Criar um carrinho com 6 unidades (Acima do estoque inicial de 5)
-            const cart = new Cart({
-                userId,
-                items: [{ productId, quantity: 6 }],
-            });
-            await cart.save();
 
-            const initialStock = (await Product.findById(productId))?.stock || 0; 
+        it("não deve criar pedido se algum produto não existir", async () => {
+            const { user, token } = await createTestUser();
+
+            const fakeProductId = new mongoose.Types.ObjectId();
+
+            await Cart.create({
+                userId: user._id,
+                items: [
+                    {
+                        productId: fakeProductId,
+                        quantity: 1,
+                    },
+                ],
+            });
 
             const response = await request(app)
                 .post("/api/orders/checkout")
-                .set("Authorization", `Bearer ${userToken}`)
-                .send({}); 
+                .set("Authorization", `Bearer ${token}`);
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toContain("Produto");
+            expect(response.body.error).toContain("não encontrado");
+        });
+
+        it("não deve criar pedido se o estoque for insuficiente", async () => {
+            const { user, token } = await createTestUser();
+
+            const product = await Product.create({
+                name: "Produto com Estoque Baixo",
+                price: 50,
+                stock: 1,
+            });
+
+            await Cart.create({
+                userId: user._id,
+                items: [
+                    {
+                        productId: product._id,
+                        quantity: 5, // maior que o estoque
+                    },
+                ],
+            });
+
+            const response = await request(app)
+                .post("/api/orders/checkout")
+                .set("Authorization", `Bearer ${token}`);
 
             expect(response.status).toBe(400);
             expect(response.body.error).toContain("Estoque insuficiente");
 
-            // Verifica se o estoque NÃO foi alterado
-            const productAfterFailure = await Product.findById(productId);
-            expect(productAfterFailure?.stock).toBe(initialStock); 
+            // garante que o estoque NÃO foi alterado
+            const productAfterFailure = await Product.findById(product._id);
+            expect(productAfterFailure!.stock).toBe(1);
 
-            // Verifica se o carrinho NÃO foi limpo
-            const cartAfterFailure = await Cart.findOne({ userId });
-            expect(cartAfterFailure?.items).toHaveLength(1);
+            // garante que o pedido NÃO foi criado
+            const orders = await Order.find({ userId: user._id });
+            expect(orders.length).toBe(0);
         });
+
     });
+
 
     // --- GET /api/orders/my ---
     describe("GET /api/orders/my", () => {
@@ -166,40 +208,93 @@ describe("Order Routes", () => {
 
             expect(response.status).toBe(403);
         });
-    });
 
-    // --- PUT /api/orders/:id ---
-    describe("PUT /api/orders/:id", () => {
-        let orderToUpdate: Order;
-        
-        beforeEach(async () => {
-            // Cria um pedido para ser atualizado (usa userId do describe principal)
-            orderToUpdate = new Order({
-                userId,
-                items: [{ productId, quantity: 1 }],
-                total: 100,
-                status: "pending",
-            });
-            await orderToUpdate.save();
-        });
-
+        // --- PUT /api/orders/:id ---
         it("deve atualizar o status do pedido como admin", async () => {
-            const response = await request(app)
-                .put(`/api/orders/${orderToUpdate._id}`)
+            const { user, token: userToken } = await createTestUser();
+            const { token: adminToken } = await createTestUser("admin");
+
+            const product = await Product.create({
+                name: "Produto Teste",
+                price: 100,
+                stock: 10,
+            });
+
+            await Cart.create({
+                userId: user._id,
+                items: [
+                    {
+                        productId: product._id,
+                        quantity: 1,
+                    },
+                ],
+            });
+
+            // checkout como user
+            const checkoutResponse = await request(app)
+                .post("/api/orders/checkout")
+                .set("Authorization", `Bearer ${userToken}`);
+
+            expect(checkoutResponse.status).toBe(201);
+
+            const orderId = checkoutResponse.body.order._id;
+
+            // 🔹 admin marca como pago
+            const paidResponse = await request(app)
+                .put(`/api/orders/${orderId}`)
+                .set("Authorization", `Bearer ${adminToken}`)
+                .send({ status: "paid" });
+
+            expect(paidResponse.status).toBe(200);
+            expect(paidResponse.body.status).toBe("paid");
+
+            // 🔹 admin envia
+            const shippedResponse = await request(app)
+                .put(`/api/orders/${orderId}`)
                 .set("Authorization", `Bearer ${adminToken}`)
                 .send({ status: "shipped" });
 
-            expect(response.status).toBe(200);
-            expect(response.body.order.status).toBe("shipped");
+            expect(shippedResponse.status).toBe(200);
+            expect(shippedResponse.body.status).toBe("shipped");
         });
 
         it("não deve permitir que usuário comum atualize status", async () => {
+            const { user, token: userToken } = await createTestUser();
+            const { token: adminToken } = await createTestUser("admin");
+
+            const product = await Product.create({
+                name: "Produto Teste",
+                price: 100,
+                stock: 10,
+            });
+
+            await Cart.create({
+                userId: user._id,
+                items: [
+                    {
+                        productId: product._id,
+                        quantity: 1,
+                    },
+                ],
+            });
+
+            // pedido nasce via checkout (como user)
+            const checkoutResponse = await request(app)
+                .post("/api/orders/checkout")
+                .set("Authorization", `Bearer ${userToken}`);
+
+            expect(checkoutResponse.status).toBe(201);
+
+            const orderId = checkoutResponse.body.order._id;
+
+            // tentativa de update como usuário comum
             const response = await request(app)
-                .put(`/api/orders/${orderToUpdate._id}`)
+                .put(`/api/orders/${orderId}`)
                 .set("Authorization", `Bearer ${userToken}`)
                 .send({ status: "shipped" });
 
             expect(response.status).toBe(403);
         });
+
     });
 });
