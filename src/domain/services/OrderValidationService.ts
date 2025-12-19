@@ -6,7 +6,7 @@ interface CartItem {
     quantity: number;
 }
 
-export class OrderDomainService {
+export class OrderValidationService {
 
     calculateTotalAndValidate(
         items: CartItem[],

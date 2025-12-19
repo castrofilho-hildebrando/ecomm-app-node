@@ -1,7 +1,7 @@
 {
     "name": "backend",
     "version": "1.0.0",
-    "description": "",
+    "description": "API backend Node.js",
     "main": "index.js",
     "scripts": {
         "dev": "ts-node-dev --respawn --ignore-watch node_modules --no-notify --clear src/server.ts",
@@ -9,8 +9,8 @@
         "start": "node dist/index.js",
         "test": "jest"
     },
-    "keywords": [],
-    "author": "",
+    "keywords": ["showcase", "API", "TypeScript", "Express"],
+    "author": "Hildebrando Castro",
     "license": "ISC",
     "dependencies": {
         "bcrypt": "^6.0.0",
