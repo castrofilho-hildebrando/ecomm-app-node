@@ -1,37 +1,34 @@
-import { InsufficientStockError, ProductNotFoundError } from "../errors/CheckoutErrors";
-import { IProduct } from "../../models/Product";
-
-interface CartItem {
-    productId: string;
-    quantity: number;
-}
+import { OrderItem } from "../types/OrderItem";
+import { ProductSnapshot } from "../types/ProductSnapshot";
+import { DomainError } from "../errors/DomainError";
 
 export class OrderValidationService {
 
-    calculateTotalAndValidate(
-        items: CartItem[],
-        products: IProduct[]
+    validateAndCalculateTotal(
+        items: OrderItem[],
+        products: ProductSnapshot[]
     ): number {
 
-        const productMap = products.reduce((acc, product) => {
-            acc[product._id.toString()] = product;
-            return acc;
-        }, {} as Record<string, IProduct>);
+        const productMap: Record<string, ProductSnapshot> = {};
+
+        for (const product of products) {
+            productMap[product.id] = product;
+        }
 
         let total = 0;
 
         for (const item of items) {
-            const product = productMap[item.productId.toString()];
+            const product = productMap[item.productId];
 
             if (!product) {
-                throw new ProductNotFoundError(item.productId.toString());
+                throw new DomainError(
+                    `Product not found: ${item.productId}`
+                );
             }
 
             if (product.stock < item.quantity) {
-                throw new InsufficientStockError(
-                    product.name,
-                    product.stock,
-                    item.quantity
+                throw new DomainError(
+                    `Insufficient stock for product: ${item.productId}`
                 );
             }
 

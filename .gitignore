@@ -1,5 +1,6 @@
 dist/
 node_modules/
+.idea/
 files-list.sh
 fs-app-ecomm.backend.sublime-project
 fs-app-ecomm.fontes.txt

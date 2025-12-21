@@ -1,17 +1,8 @@
 // FILE: src/middlewares/adminAuth.ts
 
-import { Response, NextFunction, Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
-// Se você definiu AuthRequest em authMiddleware, importe de lá. 
-// Caso contrário, use esta definição para garantir o acesso a req.user:
-export interface AuthRequest extends Request {
-    user?: {
-        userId: string;
-        role: 'user' | 'admin';
-    };
-}
-
-export const adminAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const adminAuth = (req: Request, res: Response, next: NextFunction)=> {
     // 1. Verifica se o usuário foi autenticado
     if (!req.user || !req.user.role) {
         return res.status(401).json({ error: 'Acesso negado. Token inválido ou ausente.' });

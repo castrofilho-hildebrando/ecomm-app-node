@@ -1,15 +1,14 @@
-import { Response } from "express";
-import { AuthRequest } from "../middlewares/authMiddleware";
+import { Request, Response } from "express";
 import { Cart } from "../models/Cart";
 import { Product } from "../models/Product";
 
-export const getCart = async (req: AuthRequest, res: Response) => {
+export const getCart = async (req: Request, res: Response) => {
 
     try {
 
-        if (!req.user?.userId)
+        if (!req.user?.id)
             return res.status(401).json({ error: "Usuário não autenticado" });
-        const cart = await Cart.findOne({ userId: req.user.userId });
+        const cart = await Cart.findOne({ userId: req.user.id });
         res.json(cart || { items: [] });
     } catch (error) {
 
@@ -17,11 +16,11 @@ export const getCart = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const addToCart = async (req: AuthRequest, res: Response) => {
+export const addToCart = async (req: Request, res: Response) => {
 
     try {
 
-        if (!req.user?.userId)
+        if (!req.user?.id)
             return res.status(401).json({ error: "Usuário não autenticado" });
 
         const { productId, quantity } = req.body;
@@ -47,7 +46,7 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 
         // 3. (OPCIONAL mas RECOMENDADO) Validação de Estoque (para prevenir adição excessiva)
         // Buscamos o carrinho existente para calcular o total após a adição
-        let cart = await Cart.findOne({ userId: req.user.userId });
+        let cart = await Cart.findOne({ userId: req.user.id });
 
         const existingItem = cart?.items.find(
             (item) => item.productId.toString() === productId,
@@ -65,7 +64,7 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 
         if (!cart) {
 
-            cart = new Cart({ userId: req.user.userId, items: [] });
+            cart = new Cart({ userId: req.user.id, items: [] });
         }
 
         if (existingItem) {
@@ -84,15 +83,15 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const removeFromCart = async (req: AuthRequest, res: Response) => {
+export const removeFromCart = async (req: Request, res: Response) => {
 
     try {
 
-        if (!req.user?.userId)
+        if (!req.user?.id)
             return res.status(401).json({ error: "Usuário não autenticado" });
 
         const { productId } = req.body;
-        const cart = await Cart.findOne({ userId: req.user.userId });
+        const cart = await Cart.findOne({ userId: req.user.id });
 
         if (!cart)
             return res.status(404).json({ error: "Carrinho não encontrado" });
@@ -110,14 +109,14 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const clearCart = async (req: AuthRequest, res: Response) => {
+export const clearCart = async (req: Request, res: Response) => {
 
     try {
 
-        if (!req.user?.userId)
+        if (!req.user?.id)
             return res.status(401).json({ error: "Usuário não autenticado" });
 
-        const cart = await Cart.findOne({ userId: req.user.userId });
+        const cart = await Cart.findOne({ userId: req.user.id });
 
         if (!cart)
             return res.status(404).json({ error: "Carrinho não encontrado" });

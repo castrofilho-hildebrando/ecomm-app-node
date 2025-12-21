@@ -45,7 +45,7 @@ export class CheckoutUseCaseImpl implements CheckoutUseCase {
                     quantity: item.quantity,
                 }));
 
-                const total = this.orderDomainService.calculateTotalAndValidate(
+                const total = this.orderDomainService.validateAndCalculateTotal(
                     domainItems,
                     products,
                 );

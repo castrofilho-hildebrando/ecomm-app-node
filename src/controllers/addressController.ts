@@ -1,5 +1,4 @@
-import { Response } from 'express';
-import { AuthRequest } from '../middlewares/authMiddleware';
+import { Request, Response } from 'express';
 import { Address } from '../models/Address';
 import mongoose from 'mongoose';
 
@@ -18,11 +17,11 @@ const ensureOnlyOneDefault = async (userId: mongoose.Types.ObjectId, currentAddr
 // =========================================================================
 // POST /api/addresses - Criar novo endereço
 // =========================================================================
-export const createAddress = async (req: AuthRequest, res: Response) => {
+export const createAddress = async (req: Request, res: Response) => {
 
     try {
 
-        const userId = req.user?.userId;
+        const userId = req.user?.id;
         if (!userId) {
 
             return res.status(401).json({ error: 'Usuário não autenticado.' })
@@ -64,11 +63,11 @@ export const createAddress = async (req: AuthRequest, res: Response) => {
 // =========================================================================
 // GET /api/addresses - Listar todos os endereços do usuário
 // =========================================================================
-export const getAddresses = async (req: AuthRequest, res: Response) => {
+export const getAddresses = async (req: Request, res: Response) => {
 
     try {
 
-        const userId = req.user?.userId;
+        const userId = req.user?.id;
         if (!userId) {
 
             return res.status(401).json({ error: 'Usuário não autenticado.' });
@@ -86,11 +85,11 @@ export const getAddresses = async (req: AuthRequest, res: Response) => {
 // =========================================================================
 // PUT /api/addresses/:id - Atualizar endereço
 // =========================================================================
-export const updateAddress = async (req: AuthRequest, res: Response) => {
+export const updateAddress = async (req: Request, res: Response) => {
 
     try {
 
-        const userId = req.user?.userId;
+        const userId = req.user?.id;
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado.' });
 
         const { id } = req.params;
@@ -124,11 +123,11 @@ export const updateAddress = async (req: AuthRequest, res: Response) => {
 // =========================================================================
 // DELETE /api/addresses/:id - Deletar endereço
 // =========================================================================
-export const deleteAddress = async (req: AuthRequest, res: Response) => {
+export const deleteAddress = async (req: Request, res: Response) => {
 
     try {
 
-        const userId = req.user?.userId;
+        const userId = req.user?.id;
         if (!userId) {
 
             return res.status(401).json({ error: 'Usuário não autenticado.' });
