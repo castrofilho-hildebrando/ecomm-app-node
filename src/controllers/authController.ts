@@ -57,7 +57,10 @@ export const registerUser = async (req: Request, res: Response) => {
                 role: newUser.role,
             },
         })
-    } catch (error) {
+    }
+
+    catch (error) {
+
         console.error("Erro no registro de usuário:", error)
         res.status(500).json({ error: "Erro interno ao registrar usuário." })
     }

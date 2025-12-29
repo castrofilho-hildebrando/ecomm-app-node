@@ -1,4 +1,3 @@
-import { AddItemToCartUseCase } from "../../application/usecases/AddItemToCartUseCase"
 import { AddItemToCartUseCaseImpl } from "../../application/usecases/AddItemToCartUseCaseImpl"
 
 import { MongoCartRepository } from "../repositories/MongoCartRepository"

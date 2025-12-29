@@ -25,6 +25,7 @@ export async function checkout(req: Request, res: Response) {
     }
 
     catch (error: any) {
+
         const code = error?.code
         const known = ["CART_EMPTY", "PRODUCT_NOT_FOUND", "INSUFFICIENT_STOCK"]
         const status = known.includes(code) ? 400 : 500
@@ -66,31 +67,48 @@ export async function updateOrderStatus(req: Request, res: Response) {
     }
 
     catch {
+
         return res.status(500).json({ error: "Erro interno" })
     }
 }
 
 export async function getMyOrders(req: Request, res: Response) {
+
     try {
+
         const user = req.user
-        if (!user) return res.status(401).json({ message: "Unauthorized" })
+        if (!user) {
+
+            return res.status(401).json({ message: "Unauthorized" })
+        }
 
         const orders = await orderRepository.findByUserId(user.userId)
         return res.status(200).json(orders.map(o => ({ ...o, _id: o.id })))
-    } catch {
+    }
+
+    catch {
+
         return res.status(500).json({ error: "Erro interno" })
     }
 }
 
 export async function getAllOrders(req: Request, res: Response) {
+
     try {
+
         const user = req.user
-        if (!user || user.role !== "admin") return res.status(403).json({ message: "Forbidden" })
+        if (!user || user.role !== "admin") {
+
+            return res.status(403).json({ message: "Forbidden" })
+        }
 
         const useCase = makeGetAllOrdersUseCase()
         const orders = await useCase.execute({ actor: { id: user.userId, role: user.role } })
         return res.status(200).json(orders)
-    } catch (error: any) {
+    }
+
+    catch (error: any) {
+    
         return res.status(403).json({ message: error.message })
     }
 }

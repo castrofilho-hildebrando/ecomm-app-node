@@ -32,7 +32,14 @@ export default [
             semi: ["error", "never"],
             indent: ["error", 4],
             "no-unused-vars": "off", // disable base rule
-            "@typescript-eslint/no-unused-vars": ["error"], // TS-aware version
+            "@typescript-eslint/no-unused-vars": [
+                "error",
+                {
+                    argsIgnorePattern: "^_",
+                    varsIgnorePattern: "^_",
+                    caughtErrorsIgnorePattern: "^_",
+                },
+            ],
         },
     },
 

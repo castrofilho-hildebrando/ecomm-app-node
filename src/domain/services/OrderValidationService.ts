@@ -3,7 +3,9 @@ import { ProductSnapshot } from "../types/ProductSnapshot"
 import { ProductNotFoundError, InsufficientStockError } from "../errors/CheckoutErrors"
 
 export class OrderValidationService {
+
     validateAndCalculateTotal(items: OrderItem[], products: ProductSnapshot[]): number {
+
         const productMap: Record<string, ProductSnapshot> = {}
         for (const product of products) {
             productMap[product.id] = product

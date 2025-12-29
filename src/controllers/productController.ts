@@ -5,23 +5,37 @@ const productRepository = new MongoProductRepository()
 
 // GET /api/products — rota pública
 export async function getAllProducts(req: Request, res: Response) {
+
     try {
+
         const products = await productRepository.findAll()
         return res.status(200).json(products)   // 🔹 já vem com _id
-    } catch (error) {
+    }
+
+    catch (error) {
+    
         console.error("GET PRODUCTS ERROR:", error)
         return res.status(500).json({ error: "Erro interno" })
     }
 }
 
 export async function createProduct(req: Request, res: Response) {
+
     try {
+
         const user = req.user
-        if (!user) return res.status(401).json({ message: "Unauthorized" })
-        if (user.role !== "admin") return res.status(403).json({ message: "Forbidden" })
+        if (!user) {
+
+            return res.status(401).json({ message: "Unauthorized" })
+        }
+        if (user.role !== "admin") {
+
+            return res.status(403).json({ message: "Forbidden" })
+        }
 
         const { name, price, stock, description } = req.body
         if (!name || price === undefined) {
+
             return res.status(400).json({ error: "Campos obrigatórios: name e price" })
         }
 
@@ -42,7 +56,10 @@ export async function createProduct(req: Request, res: Response) {
                 description: created.description,
             }
         })
-    } catch (error) {
+    }
+
+    catch (error) {
+    
         console.error("CREATE PRODUCT ERROR:", error)
         return res.status(500).json({ error: "Erro interno" })
     }
@@ -94,6 +111,7 @@ export async function updateProduct(req: Request, res: Response) {
     }
 
     catch (error) {
+
         console.error("UPDATE PRODUCT ERROR:", error)
         return res.status(500).json({ error: "Erro interno" })
     }
@@ -101,10 +119,18 @@ export async function updateProduct(req: Request, res: Response) {
 
 // DELETE /api/products/:id — apenas admin
 export async function deleteProduct(req: Request, res: Response) {
+
     try {
+
         const user = req.user
-        if (!user) return res.status(401).json({ message: "Unauthorized" })
-        if (user.role !== "admin") return res.status(403).json({ message: "Forbidden" })
+        if (!user) {
+
+            return res.status(401).json({ message: "Unauthorized" })
+        }
+        if (user.role !== "admin") {
+
+            return res.status(403).json({ message: "Forbidden" })
+        }
 
         const { id } = req.params
         if (!id) {
@@ -118,7 +144,10 @@ export async function deleteProduct(req: Request, res: Response) {
 
         // 🔹 manter consistência: resposta dentro de product
         return res.status(200).json({ product: { deleted: true, _id: id } })
-    } catch (error) {
+    }
+
+    catch (error) {
+
         console.error("DELETE PRODUCT ERROR:", error)
         return res.status(500).json({ error: "Erro interno" })
     }

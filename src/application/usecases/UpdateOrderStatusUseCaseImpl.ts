@@ -28,9 +28,7 @@ implements UpdateOrderStatusUseCase {
         }
 
         this.statusService.validatePermission(
-            input.actor.role,
-            order.status,
-            input.newStatus
+            input.actor.role
         )
 
         this.statusService.validateTransition(

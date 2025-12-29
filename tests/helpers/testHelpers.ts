@@ -5,10 +5,9 @@ import jwt from "jsonwebtoken"
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret"
 
-export const createTestUser = async (role: "user" | "admin" = "user", suffix: string = Date.now().toString()): Promise<{ user: IUser, token: string }> => {
+export const createTestUser = async (role: "user" | "admin" = "user", suffix: string = Date.now().toString()): Promise<{ token: string }> => {
 
     const passwordHash = await bcrypt.hash("123456", 10)
-    const baseEmail = role === "admin" ? "hildebrando@admin.com" : "hildebrando@example.com"
     let email: string
     if (role === "admin") {
         email = `admin-${suffix}@example.com`
@@ -28,7 +27,7 @@ export const createTestUser = async (role: "user" | "admin" = "user", suffix: st
             userId: user._id.toString(),
             role: user.role,
         },
-        process.env.JWT_SECRET || "supersecret",
+        JWT_SECRET || "supersecret",
         { expiresIn: "1h" }
     )
 

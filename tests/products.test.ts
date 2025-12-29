@@ -9,7 +9,6 @@ describe("Product Routes", () => {
 
     let adminToken: string
     let userToken: string
-    let productId: string = ""
 
     // Dados para um novo produto de teste
     const newProductData = {
@@ -30,14 +29,12 @@ describe("Product Routes", () => {
 
         adminToken = admin.token
         userToken = user.token
-
-        const product = await createTestProduct()
-        productId = product._id.toString()
     })
 
     describe("GET /api/products", () => {
 
         it("deve listar todos os produtos (rota pública)", async () => {
+            await createTestProduct()
             // Rota pública, não requer token
             const response = await request(app).get("/api/products") 
 

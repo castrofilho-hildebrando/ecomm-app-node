@@ -8,13 +8,11 @@ clearDatabase()
 
 describe("Cart Routes", () => {
     let userToken: string
-    let userId: string
     let productId: string
 
     beforeEach(async () => {
         const user = await createTestUser("user")
         userToken = user.token
-        userId = user.user._id.toString()
 
         const product = await createTestProduct()
         productId = product._id.toString()

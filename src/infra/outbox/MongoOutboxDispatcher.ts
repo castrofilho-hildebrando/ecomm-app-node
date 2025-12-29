@@ -1,5 +1,4 @@
 import { Outbox } from "../models/Outbox"
-import { OutboxDispatcher } from "./OutboxDispatcher"
 import { OrderPlacedHandler } from "./handlers/OrderPlacedHandler"
 import { ApplicationEvent } from "../../application/events/ApplicationEvent"
 

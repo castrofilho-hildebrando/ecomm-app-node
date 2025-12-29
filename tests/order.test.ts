@@ -1,6 +1,6 @@
 import request from "supertest"
 import app from "../src/app"
-import { createTestUser, createTestProduct } from "./helpers/testHelpers"
+import { createTestUser } from "./helpers/testHelpers"
 import { clearDatabase } from "./helpers/clearDatabase"
 import mongoose from "mongoose"
 import { Cart } from "../src/infra/models/Cart"
@@ -14,28 +14,20 @@ describe("Order Routes", () => {
     let userToken: string = "" 
     let adminToken: string = ""
     let userId: string = ""
-    let adminId: string = ""
-    let productId: string = ""
-    const PRODUCT_PRICE = 10
-    const PRODUCT_STOCK = 5
     
     // Configuração robusta e paralela
     beforeEach(async () => {
 
         clearDatabase()
         // Cria usuários e um produto base de forma eficiente
-        const [user, admin, product] = await Promise.all([
+        const [user, admin] = await Promise.all([
             createTestUser("user"),
             createTestUser("admin"),
-            createTestProduct({ price: PRODUCT_PRICE, stock: PRODUCT_STOCK })
         ])
 
         userToken = user.token
         userId = user.user._id.toString()
         adminToken = admin.token
-        adminId = admin.user._id.toString()
-
-        productId = product._id.toString() // ID do produto base preenchido aqui
     })
 
     // --- POST /api/orders/checkout ---
@@ -261,7 +253,6 @@ describe("Order Routes", () => {
 
         it("não deve permitir que usuário comum atualize status", async () => {
             const { user, token: userToken } = await createTestUser()
-            const { token: adminToken } = await createTestUser("admin")
 
             const product = await Product.create({
                 name: "Produto Teste",
