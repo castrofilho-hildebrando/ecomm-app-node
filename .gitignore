@@ -1,0 +1,55 @@
+# Dependências
+node_modules/
+jspm_packages/
+
+# Build e Saída
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Variáveis de Ambiente (Segurança)
+.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testes e Cobertura
+coverage/
+*.lcov
+.nyc_output
+.jest/
+
+# Editor/IDE (Sublime Text específico do seu projeto)
+*.sublime-project
+*.sublime-workspace
+
+# Outras IDEs comuns
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Docker (Opcional: ignore se os dados do banco ficarem em pastas locais)
+.docker/
+# Se você usa volumes locais para o MongoDB no docker-compose:
+# data/db/
+
+# Arquivos temporários do seu dump de estrutura
+tree.txt
